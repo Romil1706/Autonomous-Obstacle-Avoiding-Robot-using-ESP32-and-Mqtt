@@ -4,9 +4,9 @@ An IoT-based autonomous mobile robot powered by dual 18650 batteries, featuring 
 
 ## Overview
 
-* This project is an intelligent, self-navigating robotic car built using an ESP32 microcontroller mounted on a custom MDF board chassis. 
+* This project is an intelligent, self-navigating robotic car built using an ESP32 microcontroller mounted on a custom MDF board chassis.
 * The system allows users to remotely control the robot's ignition (ON/OFF) and monitor real-time spatial distances through an MQTT dashboard.
-* The robot is driven by two DC motors and stabilized by a front barrel wheel, running on a dual 18650 battery power supply for robust mobility.
+* The robot is driven by two DC motors via an L298N motor driver and stabilized by a front barrel wheel, running on a dual 18650 battery power supply for robust mobility.
 * The project seamlessly combines autonomous decision-making, servo-driven ultrasonic scanning, and IoT telemetry into a single platform.
 
 ## Features
@@ -23,9 +23,9 @@ An IoT-based autonomous mobile robot powered by dual 18650 batteries, featuring 
 ## Hardware Components
 
 * ESP32 Development Board
+* L298N H-Bridge DC Motor Driver
 * HC-SR04 Ultrasonic Sensor
 * SG90 Servo Motor
-* L298N (or similar) DC Motor Driver
 * 2x DC Geared Motors with Wheels
 * 1x Barrel Wheel (Caster Wheel)
 * Custom MDF Board Chassis
@@ -48,12 +48,18 @@ When an obstacle is detected directly ahead (less than 30 cm):
 
 ### Autonomous Decision Logic
 The microcontroller compares the collected left and right distances:
-* If the **Left** path has more than 30 cm of clearance and is wider than the right side, it executes a `LEFT` turn.
-* If the **Right** path is wider and adequately clear, it executes a `RIGHT` turn.
+* If the Left path has more than 30 cm of clearance and is wider than the right side, it executes a `LEFT` turn.
+* If the Right path is wider and adequately clear, it executes a `RIGHT` turn.
 * If both directions are blocked, it triggers an `ESCAPE` turn to rotate out of the trapped space.
 
+### Motor Drive System (L298N)
+The locomotion of the vehicle is managed by the L298N H-Bridge motor driver module:
+* The ESP32 sends directional logic signals via four digital pins (`IN1`, `IN2`, `IN3`, and `IN4`) to the motor driver inputs.
+* The L298N translates these low-current microcontroller signals into high-current outputs required to turn the two DC geared motors.
+* For turning maneuvers, the driver runs the dual motors in opposite directions (differential steering) to pivot the car on its central axis smoothly alongside the front barrel wheel.
+
 ### Post-Turn Failsafe
-After deciding and turning, the robot takes one more forward reading. If the path is still blocked, it will forcefully continue rotating in the same direction until the path is completely clear. 
+After deciding and turning, the robot takes one more forward reading. If the path is still blocked, it will forcefully continue rotating in the same direction until the path is completely clear.
 
 ## MQTT Topics
 
@@ -64,7 +70,7 @@ After deciding and turning, the robot takes one more forward reading. If the pat
 | `robot/front` | Distance reading to the obstacle directly ahead |
 | `robot/left` | Scanned distance toward the left vector |
 | `robot/right` | Scanned distance toward the right vector |
-| `robot/decision` | Current navigation state (`LEFT`, `RIGHT`, or `ESCAPE`) |
+| `robot/decision` | Current navigation state (LEFT, RIGHT, or ESCAPE) |
 
 ### Subscribed Topics
 
@@ -92,4 +98,4 @@ After deciding and turning, the robot takes one more forward reading. If the pat
 
 ## Author
 
-**Developed by Romil Atmaramani** as an IoT-based Autonomous Obstacle Avoiding Robot using ESP32, MQTT communication, environmental scanning, and mobile platform robotics.
+**Developed by Romil Atmaramani** as an IoT-based Autonomous Obstacle Avoiding Robot using ESP32, L298N motor driver control, MQTT communication, environmental scanning, and mobile platform robotics.
